@@ -14,7 +14,7 @@ function App({ Component, pageProps }: AppProps) {
     <WagmiConfig client={client}>
       <RainbowKitProvider chains={chains}>
         <NextHead>
-          <title>My wagmi + RainbowKit App</title>
+          <title>zkERC20</title>
         </NextHead>
 
         {mounted && <Component {...pageProps} />}
