@@ -7,9 +7,7 @@ export function callMintTokens(amount: bigint): JSX.Element {
   const { address, isConnected } = useAccount();
   const { config } = usePrepareMockErc20Mint({
     args: [address!, BigNumber.from(amount)]
-  })
-  
-  console.log(JSON.stringify(config));
+  });
 
   const { data, isLoading, isSuccess, write } = useMockErc20Mint(config)
 
