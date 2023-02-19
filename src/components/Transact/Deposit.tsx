@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { Box, Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
 import { AddressName } from "../../pages";
+import { zkutil } from "zk-erc20";
 
 export function DepositBox(tokens: AddressName[]): JSX.Element {
   const [token, setToken] = React.useState('');

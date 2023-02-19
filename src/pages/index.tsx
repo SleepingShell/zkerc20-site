@@ -1,5 +1,6 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { BigNumber } from 'ethers'
+import { useState } from 'react'
 import { useAccount } from 'wagmi'
 
 import { Account, Commitment } from '../components'
@@ -7,6 +8,7 @@ import { Header } from '../components/Header'
 import { callMintTokens } from '../components/MockToken/Mint'
 import { PoolInfo } from '../components/Pool/PoolInfo'
 import { TokenInfoTable } from '../components/Pool/TokenInfo'
+import { PoolAccountBox } from '../components/PoolAccount'
 import { DepositBox } from '../components/Transact/Deposit'
 import { mockErc20Address, useErc20Name, useZkErc20Tokens } from '../generated'
 
@@ -44,6 +46,11 @@ function Page({ numTokens }: { numTokens: number }) {
   const { isConnected } = useAccount()
   const tokens = getTokens(numTokens);
 
+  const [ poolAccounts, setPoolAccounts ] = useState<string[]>([]);
+  const addKey = (key: string) => {
+    setPoolAccounts(poolAccounts.concat(key));
+  }
+
   return (
     <>
       {Header()}
@@ -52,6 +59,7 @@ function Page({ numTokens }: { numTokens: number }) {
       {callMintTokens(1000n*10n**18n)}
       {PoolInfo(tokens)}
       {DepositBox(tokens)}
+      <PoolAccountBox accounts={poolAccounts} onKeyImport={addKey} />
     </>
   )
 }
