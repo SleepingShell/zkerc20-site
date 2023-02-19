@@ -11,13 +11,13 @@ export function callMintTokens(amount: bigint): JSX.Element {
 
   const { data, isLoading, isSuccess, write } = useMockErc20Mint(config)
 
+  const doMint = () => {
+    isConnected && write?.();
+  }
+
   return (
     <div>
-      {isConnected &&
-        <Button variant="outlined" onClick={() => write?.()}>
-            Mint Mock Tokens
-          </Button>
-      }
+      <Button variant="outlined" onClick={doMint}>Mint Mock Tokens</Button>
       {isSuccess 
         ? "Minted!"
         : ""

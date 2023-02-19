@@ -7,6 +7,7 @@ import { Header } from '../components/Header'
 import { callMintTokens } from '../components/MockToken/Mint'
 import { PoolInfo } from '../components/Pool/PoolInfo'
 import { TokenInfoTable } from '../components/Pool/TokenInfo'
+import { DepositBox } from '../components/Transact/Deposit'
 import { mockErc20Address, useErc20Name, useZkErc20Tokens } from '../generated'
 
 // TODO: Call the network directly without a connected account
@@ -50,6 +51,7 @@ function Page({ numTokens }: { numTokens: number }) {
       {Commitment()}
       {callMintTokens(1000n*10n**18n)}
       {PoolInfo(tokens)}
+      {DepositBox(tokens)}
     </>
   )
 }
