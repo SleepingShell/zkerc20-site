@@ -1,6 +1,7 @@
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { BigNumber } from "ethers";
 import { useZkErc20Tokens, useZkErc20Tree } from "../../generated";
+import { AddressName } from "../../pages";
 import { TokenInfoTable } from "./TokenInfo";
 
 function totalCommitments(): JSX.Element {
@@ -10,17 +11,7 @@ function totalCommitments(): JSX.Element {
   return <div>Total anonymous set size: {commitments.toString()}</div>;
 }
 
-export function PoolInfo(numTokens: number): JSX.Element {
-  const tokens: `0x${string}`[] = []
-  for (let i = 0; i < numTokens; i++) {
-    const { data } = useZkErc20Tokens({args: [BigNumber.from(i)]});
-    if (data !== undefined) {
-      tokens.push(data);
-    } else {
-      console.log(`Got undefined token ${i}`);
-    }
-  }
-
+export function PoolInfo(tokens: AddressName[]): JSX.Element {
   return <Grid2 container>
     <Grid2 xs={12}>
       {totalCommitments()}

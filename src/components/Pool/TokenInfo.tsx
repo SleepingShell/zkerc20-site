@@ -2,6 +2,7 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from
 import { BigNumber } from "ethers";
 import { useAccount } from "wagmi";
 import { useErc20BalanceOf, useErc20Decimals, useErc20Name, useErc20Symbol, useErc20TotalSupply, zkErc20Address } from "../../generated";
+import { AddressName } from "../../pages";
 import { bigintToDecimalNumber } from "../../utils";
 
 type TokenInfo = {
@@ -12,15 +13,14 @@ type TokenInfo = {
   totalSuppy: bigint
 }
 
-function getTokenData(tokenAddress: `0x${string}`): TokenInfo {
+function getTokenData({address, name}: {address: `0x${string}`, name?: string}): TokenInfo {
   const addr = zkErc20Address[11155111];
-  let { data: balance } = useErc20BalanceOf({ address: tokenAddress, args: [addr]});
-  let { data: name } = useErc20Name({ address: tokenAddress });
-  let { data: decimals } = useErc20Decimals({ address: tokenAddress});
-  let { data: totalSupply } = useErc20TotalSupply({ address: tokenAddress});
+  let { data: balance } = useErc20BalanceOf({ address: address, args: [addr]});
+  let { data: decimals } = useErc20Decimals({ address });
+  let { data: totalSupply } = useErc20TotalSupply({ address });
 
   return {
-    address: tokenAddress,
+    address: address,
     name: name ??= "",
     decimals: decimals ??= 1,
     poolBalance: (balance ??= BigNumber.from(0)).toBigInt(),
@@ -28,7 +28,7 @@ function getTokenData(tokenAddress: `0x${string}`): TokenInfo {
   }
 }
 
-export function TokenInfoTable(tokens: `0x${string}`[]): JSX.Element {
+export function TokenInfoTable(tokens: AddressName[]): JSX.Element {
   const tokenInfos = tokens.map((token) => getTokenData(token));
   const { isConnected } = useAccount();
 
