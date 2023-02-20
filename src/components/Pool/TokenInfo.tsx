@@ -45,9 +45,6 @@ export function TokenInfoTable(tokens: AddressName[]): JSX.Element {
       : { data: BigNumber.from(0) };
     const accountBalance = data !== undefined ? data.toBigInt() : 0n;
 
-    console.log("bal", accountBalance);
-    console.log("dec", info.decimals);
-
     return (
       <TableRow key="{info.address}">
         <TableCell>{info.name}</TableCell>
