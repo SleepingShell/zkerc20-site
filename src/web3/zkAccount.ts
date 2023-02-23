@@ -91,4 +91,10 @@ export class zkAccount {
   getInput(index: number): UtxoInput {
     return this.ownedUtxos[index];
   }
+
+  getBalances(): bigint[] {
+    const totals: bigint[] = new Array(MAX_TOKENS);
+    this.ownedUtxos.map((input) => input.amounts.map((v, i) => (totals[i] += v)));
+    return totals;
+  }
 }
