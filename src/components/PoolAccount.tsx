@@ -6,6 +6,7 @@ export enum AccountStatusMessage {
   Empty,
   SuccessImport,
   ErrorImport,
+  CopyFailed,
 }
 
 // TODO: Add properties to an account object that contains balance totals
@@ -22,6 +23,13 @@ export function PoolAccountBox({
   const IMPORT_ACCOUNT_TEXT = "Import Account";
   const privateKeyRef = useRef<HTMLInputElement>();
   const [buttonText, setButtonText] = useState("Generate Account");
+
+  const copyTextToClipboard = async (text: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => {},
+      () => {}
+    );
+  };
 
   const doImport = () => {
     const val = privateKeyRef.current!.value;
@@ -40,6 +48,8 @@ export function PoolAccountBox({
       return <Alert severity="success">Successfully Imported Account</Alert>;
     } else if (status === AccountStatusMessage.ErrorImport) {
       return <Alert severity="error">Error importing account</Alert>;
+    } else if (status === AccountStatusMessage.CopyFailed) {
+      return <Alert severity="error">Error copying to clipboard</Alert>;
     }
 
     return <></>;
@@ -60,8 +70,20 @@ export function PoolAccountBox({
       {alertBox()}
       <List>
         {accounts.map((account) => (
-          <ListItem>
-            <ListItemText primary={account.getAddress()} />
+          <ListItem sx={{ maxWidth: 400 }}>
+            <ListItemText
+              primary={account.getAddress()}
+              primaryTypographyProps={{
+                variant: "body1",
+                style: {
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                },
+              }}
+            />
+            <Button variant="outlined" onClick={() => copyTextToClipboard(account.getAddress())}>
+              
+            </Button>
           </ListItem>
         ))}
       </List>
