@@ -10,25 +10,18 @@ import { callMintTokens } from "../components/MockToken/Mint";
 import { PoolInfo } from "../components/Pool/PoolInfo";
 import { AccountStatusMessage, PoolAccountBox } from "../components/PoolAccount";
 import { DepositBox } from "../components/Transact/Deposit";
-import {
-  erc20ABI,
-  useErc20Name,
-  useZkErc20,
-  useZkErc20CommitmentEvent,
-  useZkErc20Tokens,
-  zkErc20ABI,
-  zkErc20Address,
-} from "../generated";
+import { erc20ABI, zkErc20ABI, zkErc20Address } from "../generated";
 import { client } from "../wagmi";
 import { addTokenToMap } from "../web3/utxo";
 import { zkAccount } from "../web3/zkAccount";
 import { buildMerkleTree, MerkleTree } from "../web3/merkleTree";
-import { ExtractAbiEvent } from "abitype";
+import "../web3/utils";
 
 const NUM_TOKENS = 1; //TODO: Don't constant this
 
 // TODO: NOT GOOD
 const provider = client.getProvider({ chainId: sepolia.id });
+
 export async function getStaticProps() {
   const contract = getContract({
     address: zkErc20Address[11155111],
@@ -68,21 +61,6 @@ export type AddressName = {
   name: string;
 };
 
-/*
-class Observer {
-  tree: MerkleTree
-
-  constructor(depth: number) {
-    this.tree = buildMerkleTree(depth);
-
-    const contract = useZkErc20();
-
-    const filter = contract?.filters.Commitment;
-
-  }
-}
-*/
-
 async function initializeMerkleTree(depth: number): Promise<MerkleTree> {
   const tree = buildMerkleTree(depth);
 
@@ -94,29 +72,29 @@ async function initializeMerkleTree(depth: number): Promise<MerkleTree> {
 
   const iface = new ethers.utils.Interface(zkErc20ABI);
 
-  const events = await contract.queryFilter("Commitment", contract.deployTransaction.blockNumber, "latest");
-  events.map((e) => {
+  const events = await contract.queryFilter("Commitment", 0, "latest");
+  const leaves = events.map((e) => {
     const dec = iface.decodeEventLog("Commitment", e.data);
-    const dec2 = iface.parseLog(e);
-
-    // https://github.com/ethers-io/ethers.js/issues/487
+    return { index: BigNumber.from(dec.index).toNumber(), commit: BigNumber.from(dec.commitment).toBigInt() };
   });
-  //const events = await contract.queryFilter(filter, 0, "latest")
 
-  //type event = ExtractAbiEvent<typeof zkErc20ABI, 'Commitment'>
-
-  //useZkErc20CommitmentEvent({
-
+  const toAdd = leaves
+    .sort((a, b) => a.index - b.index)
+    .filter((val, index, self) => index === self.findIndex((v) => v.commit === val.commit))
+    .map((a) => a.commit);
+  tree.addLeaves(toAdd);
   return tree;
 }
 
 function Page({ numTokens, tokens, treeDepth }: { numTokens: number; tokens: AddressName[]; treeDepth: number }) {
   const { isConnected } = useAccount();
-  const [poolAccounts, setPoolAccounts] = useState<zkAccount[]>([]);
+  const [poolAccounts, setPoolAccounts] = useState<zkAccount[]>([]); //TODO: Change to context
   const [importStatus, setImportStatus] = useState<AccountStatusMessage>(AccountStatusMessage.Empty);
 
   //const [commitmentTree, setCommitmentTree] = useState<MerkleTree>(buildMerkleTree(treeDepth));
   //const contract = useZkErc20();
+
+  //initializeMerkleTree(20);
 
   const addKey = (key: string) => {
     let account: zkAccount;
