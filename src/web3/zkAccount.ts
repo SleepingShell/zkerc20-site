@@ -85,6 +85,7 @@ export class zkAccount {
       if (this.addedIndexes.get(utxo.index)) return;
       this.ownedUtxos.push(utxo);
       this.addedIndexes.set(utxo.index, true);
+      console.log(`Added new commitment to account: ${commitment}`);
     } catch (error) {}
   }
 
