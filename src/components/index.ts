@@ -1,2 +1,1 @@
-export { Account } from './Account'
-export { Commitment } from './Commitment'
+export { Account } from "./Common/Account";
