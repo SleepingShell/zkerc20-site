@@ -16,9 +16,11 @@ export async function getPoseidon(): Promise<HashFunction> {
 }
 
 let _hash: HashFunction;
+export let hashIsReady: boolean = false;
 
 (async () => {
   _hash = await getPoseidon();
+  hashIsReady = true;
 })();
 
 export const hash = (data: any): any => _hash(data);

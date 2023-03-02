@@ -12,7 +12,7 @@ import { PoolInfo } from "./PoolInfo/PoolInfo";
 import { DepositBox } from "./AccountActions/DepositBox";
 import { useAccount } from "wagmi";
 
-import { hash } from "../../web3/utils";
+import { hash, hashIsReady } from "../../web3/utils";
 
 // TODO: NOT GOOD
 const provider = client.getProvider({ chainId: sepolia.id });
@@ -23,6 +23,7 @@ class Observer {
   iface: ethers.utils.Interface;
   callback: CommitmentCallback;
   commitToAdd: { commitment: bigint; index: bigint }[] = [];
+  initialized: boolean = false;
 
   constructor(depth: number, callback: CommitmentCallback) {
     this.tree = buildMerkleTree(depth);
@@ -59,6 +60,7 @@ class Observer {
   }
 
   async initialize() {
+    if (this.initialized) return;
     const contract = getContract({
       address: zkErc20Address[11155111],
       abi: zkErc20ABI,
@@ -82,6 +84,9 @@ class Observer {
       },
       (c, i, d) => this.internalCallback(c, i, d)
     );
+
+    console.log(`Initialized observer with ${this.tree.numLeaves} leaves`);
+    this.initialized = true;
   }
 }
 
@@ -108,13 +113,19 @@ export function Application({ tokens, treeDepth }: { tokens: AddressName[]; tree
   const handleCommitmentEvent = (commitment: bigint, index: bigint, data: `0x${string}`) => {
     poolAccounts.forEach((acc) => acc.attemptDecryptAndAdd(commitment, data, index));
   };
-  const [observer, setObserver] = useState<Observer>(new Observer(treeDepth, handleCommitmentEvent));
+
+  const [observer, setObserver] = useState<Observer>();
   useEffect(() => {
-    if (isConnected) {
-      const obs = Object.assign({}, observer);
-      obs.initialize().then(() => setObserver(obs));
+    if (hashIsReady) {
+      const obs = observer == null ? new Observer(treeDepth, handleCommitmentEvent) : Object.assign({}, observer);
+
+      if (isConnected) {
+        obs.initialize().then(() => setObserver(obs));
+      } else {
+        setObserver(obs);
+      }
     }
-  }, [isConnected]);
+  }, [isConnected, hashIsReady]);
 
   return (
     <>
