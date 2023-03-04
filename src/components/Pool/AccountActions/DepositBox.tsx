@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { Box, Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
 import { AddressName } from "../../../pages";
 
-export function DepositBox(tokens: AddressName[]): JSX.Element {
+export function DepositBox({ tokens }: { tokens: AddressName[] }): JSX.Element {
   const [token, setToken] = React.useState("");
   const to = useRef<HTMLInputElement>();
   const amount = useRef<HTMLInputElement>();

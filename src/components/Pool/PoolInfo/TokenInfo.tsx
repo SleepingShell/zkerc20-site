@@ -40,9 +40,7 @@ export function TokenInfoTable(tokens: AddressName[]): JSX.Element {
   const { isConnected, address } = useAccount();
 
   const tokeInfoToRow = (info: TokenInfo): JSX.Element => {
-    let { data } = isConnected
-      ? useErc20BalanceOf({ address: info.address, args: [address!] })
-      : { data: BigNumber.from(0) };
+    let { data } = useErc20BalanceOf({ address: info.address, args: [address!] });
     const accountBalance = data !== undefined ? data.toBigInt() : 0n;
 
     return (

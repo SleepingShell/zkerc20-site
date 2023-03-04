@@ -15,7 +15,7 @@ import { Application } from "../components/Pool/Application";
 const NUM_TOKENS = 1; //TODO: Don't constant this
 
 // TODO: NOT GOOD
-const provider = client.getProvider({ chainId: sepolia.id });
+export const provider = client.getProvider({ chainId: sepolia.id });
 
 export async function getStaticProps() {
   const contract = getContract({

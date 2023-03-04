@@ -1,6 +1,6 @@
 import { BigNumber, ethers } from "ethers";
-import { getContract, watchContractEvent } from "@wagmi/core";
-import { zkErc20ABI, zkErc20Address } from "../../generated";
+import { getContract } from "@wagmi/core";
+import { useZkErc20CommitmentEvent, zkErc20ABI, zkErc20Address } from "../../generated";
 import { buildMerkleTree, MerkleTree } from "../../web3/merkleTree";
 import { client } from "../../wagmi";
 import { sepolia } from "@wagmi/chains";
@@ -12,10 +12,7 @@ import { PoolInfo } from "./PoolInfo/PoolInfo";
 import { DepositBox } from "./AccountActions/DepositBox";
 import { useAccount } from "wagmi";
 
-import { hash, hashIsReady } from "../../web3/utils";
-
-// TODO: NOT GOOD
-const provider = client.getProvider({ chainId: sepolia.id });
+import { hashIsReady } from "../../web3/utils";
 
 type CommitmentCallback = (commitment: bigint, index: bigint, data: `0x${string}`) => void;
 class Observer {
@@ -36,7 +33,7 @@ class Observer {
     return { index: BigNumber.from(dec.index).toNumber(), commit: BigNumber.from(dec.commitment).toBigInt() };
   }
 
-  private internalCallback(commitment: BigNumber, index: BigNumber, data: `0x${string}`) {
+  globalCallback(commitment: BigNumber, index: BigNumber, data: `0x${string}`) {
     console.log(`Observed new commitment event ${index.toString()}`);
     // Add to the merkle tree
     if (!index.eq(this.tree.numLeaves)) {
@@ -60,6 +57,8 @@ class Observer {
   }
 
   async initialize() {
+    // TODO: NOT GOOD
+    const provider = client.getProvider({ chainId: sepolia.id });
     if (this.initialized) return;
     const contract = getContract({
       address: zkErc20Address[11155111],
@@ -76,15 +75,6 @@ class Observer {
 
     this.tree.addLeaves(toAdd);
 
-    watchContractEvent(
-      {
-        address: zkErc20Address[11155111],
-        abi: zkErc20ABI,
-        eventName: "Commitment",
-      },
-      (c, i, d) => this.internalCallback(c, i, d)
-    );
-
     console.log(`Initialized observer with ${this.tree.numLeaves} leaves`);
     this.initialized = true;
   }
@@ -94,6 +84,7 @@ export function Application({ tokens, treeDepth }: { tokens: AddressName[]; tree
   const { isConnected } = useAccount();
   const [poolAccounts, setPoolAccounts] = useState<zkAccount[]>([]);
   const [importStatus, setImportStatus] = useState<AccountStatusMessage>(AccountStatusMessage.Empty);
+
   const addKey = (key: string) => {
     let account: zkAccount;
     try {
@@ -127,10 +118,18 @@ export function Application({ tokens, treeDepth }: { tokens: AddressName[]; tree
     }
   }, [isConnected, hashIsReady]);
 
+  useZkErc20CommitmentEvent({
+    listener: (c, i, d) => {
+      const obs = Object.assign({}, observer);
+      obs.globalCallback(c, i, d);
+      setObserver(obs);
+    },
+  });
+
   return (
     <>
       {PoolInfo(tokens)}
-      {DepositBox(tokens)}
+      <DepositBox tokens={tokens} />
       <PoolAccountBox accounts={poolAccounts} onKeyImport={addKey} status={importStatus} />
     </>
   );
