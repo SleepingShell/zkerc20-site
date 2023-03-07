@@ -14,6 +14,7 @@ import { useAccount } from "wagmi";
 
 import { hashIsReady } from "../../web3/utils";
 
+export type NameValue = { name: string; value: bigint };
 type CommitmentCallback = (commitment: bigint, index: bigint, data: `0x${string}`) => void;
 class Observer {
   tree: MerkleTree;
@@ -80,10 +81,17 @@ class Observer {
   }
 }
 
-export function Application({ tokens, treeDepth }: { tokens: AddressName[]; treeDepth: number }): JSX.Element {
+export function Application({
+  tokens,
+  treeDepth,
+}: {
+  tokens: Map<`0x${string}`, string>;
+  treeDepth: number;
+}): JSX.Element {
   const { isConnected } = useAccount();
   const [poolAccounts, setPoolAccounts] = useState<zkAccount[]>([]);
   const [importStatus, setImportStatus] = useState<AccountStatusMessage>(AccountStatusMessage.Empty);
+  const [receivedValues, setReceivedValues] = useState<NameValue[]>([]);
 
   const addKey = (key: string) => {
     let account: zkAccount;
@@ -123,6 +131,23 @@ export function Application({ tokens, treeDepth }: { tokens: AddressName[]; tree
       const obs = Object.assign({}, observer);
       obs.globalCallback(c, i, d);
       setObserver(obs);
+
+      const cb = c.toBigInt();
+      const ib = i.toBigInt();
+
+      // TODO: Look at performance of this, we can stop iterating on accounts once we find a valid
+      const newAccounts = poolAccounts.map((acc, i) => {
+        const newAcc = Object.assign({}, acc);
+        const valid = newAcc.attemptDecryptAndAdd(cb, d, ib);
+        if (valid) {
+          // Add to notify
+          const utxo = newAcc.getInput(newAcc.ownedUtxos.length);
+          //setReceivedValues(receivedValues.concat({}))
+        }
+        return newAcc;
+      });
+
+      setPoolAccounts(newAccounts);
     },
   });
 

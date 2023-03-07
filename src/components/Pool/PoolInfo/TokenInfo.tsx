@@ -35,8 +35,11 @@ function getTokenData({ address, name }: { address: `0x${string}`; name?: string
   };
 }
 
-export function TokenInfoTable(tokens: AddressName[]): JSX.Element {
-  const tokenInfos = tokens.map((token) => getTokenData(token));
+export function TokenInfoTable(tokens: Map<`0x${string}`, string>): JSX.Element {
+  //const tokenInfos = tokens.map((token) => getTokenData(token));
+  const tokenInfos: TokenInfo[] = [];
+  tokens.forEach((name, addr) => tokenInfos.push(getTokenData({ address: addr, name: name })));
+
   const { isConnected, address } = useAccount();
 
   const tokeInfoToRow = (info: TokenInfo): JSX.Element => {
