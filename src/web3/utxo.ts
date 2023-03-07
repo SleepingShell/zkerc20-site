@@ -6,6 +6,7 @@ import { randomBytes } from "crypto";
 
 // Helper for determining where a token is in the array of amounts
 const token_map: Map<string, number> = new Map();
+const index_map: Map<number, string> = new Map();
 
 export function addTokenToMap(token: string, index: number) {
   if (token_map.get(token) != undefined) {
@@ -14,6 +15,7 @@ export function addTokenToMap(token: string, index: number) {
     }
   }
   token_map.set(token, index);
+  index_map.set(index, token);
 }
 
 const zero_amounts = new Array<bigint>(MAX_TOKENS).fill(0n);
@@ -43,6 +45,17 @@ export class UtxoInput {
     this.index = index;
     this.privateKey = privkey;
     this.nullifier = this.generateNullifier(privkey);
+  }
+
+  getAmounts(): TokenAmount[] {
+    const amts: TokenAmount[] = [];
+    this.amounts.forEach((v, i) => {
+      if (v > 0n) {
+        amts.push({ token: index_map.get(i)!, amount: v });
+      }
+    });
+
+    return amts;
   }
 
   private generateNullifier(privateKey: bigint): bigint {

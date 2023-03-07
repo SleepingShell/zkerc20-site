@@ -14,7 +14,7 @@ import { useAccount } from "wagmi";
 
 import { hashIsReady } from "../../web3/utils";
 
-export type NameValue = { name: string; value: bigint };
+export type NameValue = { name: string; value: string };
 type CommitmentCallback = (commitment: bigint, index: bigint, data: `0x${string}`) => void;
 class Observer {
   tree: MerkleTree;

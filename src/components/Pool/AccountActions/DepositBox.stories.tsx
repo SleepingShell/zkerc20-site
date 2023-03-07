@@ -10,11 +10,11 @@ export default {
 const Template: ComponentStory<typeof DepositBox> = (args) => <DepositBox {...args} />;
 
 export const Empty = Template.bind({});
-Empty.args = { tokens: [] };
+Empty.args = { tokens: new Map() };
 
-const twoTokens: AddressName[] = [
-  { address: "0x01", name: "First" },
-  { address: "0x02", name: "Second" },
-];
+const twoTokens: Map<`0x${string}`, string> = new Map([
+  ["0x01", "First"],
+  ["0x02", "Second"],
+]);
 export const TwoTokens = Template.bind({});
 TwoTokens.args = { tokens: twoTokens };

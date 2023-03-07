@@ -76,17 +76,20 @@ export class zkAccount {
    * @param data Encrypted data of this input
    * @param index The index of this input in the merkle tree
    */
-  attemptDecryptAndAdd(commitment: bigint, data: string, index: bigint) {
+  attemptDecryptAndAdd(commitment: bigint, data: string, index: bigint): boolean {
     try {
       const encryptedData = unpackEncryptedData(data);
       const packedDecrypted = decrypt({ encryptedData: encryptedData, privateKey: this.privateKey.toString(16) });
       const { amounts, blinding } = unpackCommitment(packedDecrypted);
       const utxo = new UtxoInput(commitment, amounts, blinding, index, this.privateKey);
-      if (this.addedIndexes.get(utxo.index)) return;
+      if (this.addedIndexes.get(utxo.index)) return false;
       this.ownedUtxos.push(utxo);
       this.addedIndexes.set(utxo.index, true);
       console.log(`Added new commitment to account: ${commitment}`);
-    } catch (error) {}
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   getInput(index: number): UtxoInput {
