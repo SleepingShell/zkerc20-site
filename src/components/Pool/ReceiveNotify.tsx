@@ -9,7 +9,7 @@ export function ReceiveNotify({ value, handleClose }: { value: NameValue; handle
     <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
       <Alert onClose={handleClose} severity="success">
         <AlertTitle>Received UTXO</AlertTitle>
-        {value.name} : <strong>{value.value}</strong>
+        {value.value} <strong>{value.name}</strong>
       </Alert>
     </Snackbar>
   );
