@@ -42,11 +42,10 @@ export async function getStaticProps() {
     promises.push(fn());
   }
 
-  console.log(`Got all tokens ${NUM_TOKENS}`);
   return {
     props: {
       numTokens: 1,
-      tokens: new Map((await Promise.all(promises)).map((o) => [o.address, o.name])),
+      tokens: (await Promise.all(promises)).map((o) => [o.address, o.name]),
       treeDepth: 20,
     },
   };
@@ -57,15 +56,16 @@ export type AddressName = {
   name: string;
 };
 
-function Page({ tokens, treeDepth }: { tokens: Map<`0x${string}`, string>; treeDepth: number }) {
+function Page({ tokens, treeDepth }: { tokens: [`0x${string}`, string][]; treeDepth: number }) {
   const { isConnected } = useAccount();
 
+  const tokenMap: Map<`0x${string}`, string> = new Map(tokens);
   return (
     <>
       {Header()}
 
       {MintButton(1000n * 10n ** 18n)}
-      <Application tokens={tokens} treeDepth={treeDepth} />
+      <Application tokens={tokenMap} treeDepth={treeDepth} />
     </>
   );
 }
