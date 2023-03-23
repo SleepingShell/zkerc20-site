@@ -13,6 +13,8 @@ import { DepositBox } from "./AccountActions/DepositBox";
 import { useAccount } from "wagmi";
 
 import { hashIsReady } from "../../web3/utils";
+import { AlertColor } from "@mui/material";
+import { GenericNotify } from "./GenericNotify";
 
 export type NameValue = { name: string; value: string };
 type CommitmentCallback = (commitment: bigint, index: bigint, data: `0x${string}`) => void;
@@ -90,8 +92,39 @@ export function Application({
 }): JSX.Element {
   const { isConnected } = useAccount();
   const [poolAccounts, setPoolAccounts] = useState<zkAccount[]>([]);
-  const [importStatus, setImportStatus] = useState<AccountStatusMessage>(AccountStatusMessage.Empty);
-  const [receivedValues, setReceivedValues] = useState<NameValue[]>([]);
+  const [notifyQueue, setNotifyQueue] = useState<{ title: string; body: JSX.Element; serverity: AlertColor }[]>([]);
+  const [notifyOpen, setNotifyOpen] = useState<boolean>(false);
+
+  const addToQueue = (title: string, body: JSX.Element, serverity: AlertColor) => {
+    setNotifyQueue(notifyQueue.concat({ title: title, body: body, serverity: serverity }));
+    setNotifyOpen(true);
+  };
+
+  const onNotifyClose = () => {
+    if (notifyQueue.length <= 1) {
+      setNotifyOpen(false);
+      setNotifyQueue([]);
+    } else {
+      setNotifyQueue(notifyQueue.slice(1));
+    }
+  };
+
+  const notifyElement = (): JSX.Element => {
+    if (notifyQueue.length == 0) {
+      return <></>;
+    } else {
+      const e = notifyQueue[0];
+      return (
+        <GenericNotify
+          open={notifyOpen}
+          severity={e.serverity}
+          title={e.title}
+          value={e.body}
+          handleClose={onNotifyClose}
+        />
+      );
+    }
+  };
 
   const addKey = (key: string) => {
     let account: zkAccount;
@@ -101,11 +134,11 @@ export function Application({
       } else {
         account = new zkAccount();
       }
-      setImportStatus(AccountStatusMessage.SuccessImport);
+      addToQueue("Account Import", <strong>{account.getShortAddress()}</strong>, "success");
       setPoolAccounts(poolAccounts.concat(account));
     } catch (e) {
       console.log("addKey", e);
-      setImportStatus(AccountStatusMessage.ErrorImport);
+      addToQueue("Account Import", <strong>Error Importings</strong>, "error");
     }
   };
 
@@ -137,12 +170,20 @@ export function Application({
 
       // TODO: Look at performance of this, we can stop iterating on accounts once we find a valid
       const newAccounts = poolAccounts.map((acc, i) => {
-        const newAcc = Object.assign({}, acc);
+        const newAcc: zkAccount = Object.assign({}, acc);
         const valid = newAcc.attemptDecryptAndAdd(cb, d, ib);
         if (valid) {
           // Add to notify
           const utxo = newAcc.getInput(newAcc.ownedUtxos.length);
-          //setReceivedValues(receivedValues.concat({}))
+          for (const amount of utxo.getAmounts()) {
+            addToQueue(
+              "Received Value",
+              <>
+                mount.amount <strong>{amount.token}</strong>
+              </>,
+              "info"
+            );
+          }
         }
         return newAcc;
       });
@@ -153,9 +194,10 @@ export function Application({
 
   return (
     <>
+      {notifyElement()}
       {PoolInfo(tokens)}
       <DepositBox tokens={tokens} />
-      <PoolAccountBox accounts={poolAccounts} onKeyImport={addKey} status={importStatus} />
+      <PoolAccountBox accounts={poolAccounts} onKeyImport={addKey} />
     </>
   );
 }

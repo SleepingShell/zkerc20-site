@@ -42,6 +42,14 @@ export class zkAccount {
     return encodeAddress(this.publicKey, this.encryptionKey);
   }
 
+  getShortAddress(): string {
+    const addr = this.getAddress();
+    return addr
+      .slice(0, 4)
+      .concat("...")
+      .concat(addr.slice(addr.length - 4));
+  }
+
   /**
    * Create a FINAZLIED output destined for this zkAccount
    *
