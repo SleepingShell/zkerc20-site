@@ -1,10 +1,10 @@
 import { decrypt, getEncryptionPublicKey } from "@metamask/eth-sig-util";
 
-import { randomBytes32, hash } from "./utils";
+import { randomBytes32, hash, AmountsArray } from "./utils";
 
 import { encodeAddress, decodeAddress, unpackEncryptedData, unpackCommitment } from "./encoding";
 
-import { TokenAmount, UtxoInput, UtxoOutput } from "./utxo";
+import { TokenAmount, UtxoInput, UtxoOutput, zeroAmounts } from "./utxo";
 import { MAX_TOKENS } from "./constants";
 
 export class zkAccount {
@@ -68,7 +68,7 @@ export class zkAccount {
    * @param amounts List of all token outputs including zero values
    * @returns The output
    */
-  payRaw(amounts: bigint[]): UtxoOutput {
+  payRaw(amounts: AmountsArray): UtxoOutput {
     if (amounts.length != MAX_TOKENS) {
       throw Error("Invalid amounts length");
     }
@@ -104,8 +104,8 @@ export class zkAccount {
     return this.ownedUtxos[index];
   }
 
-  getBalances(): bigint[] {
-    const totals: bigint[] = new Array(MAX_TOKENS);
+  getBalances(): AmountsArray {
+    const totals: AmountsArray = zeroAmounts();
     this.ownedUtxos.map((input) => input.amounts.map((v, i) => (totals[i] += v)));
     return totals;
   }

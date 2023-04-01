@@ -1,4 +1,4 @@
-import { randomBytes32, hash } from "./utils";
+import { randomBytes32, hash, AmountsArray } from "./utils";
 import { decodeAddress, encodeAddress, packCommitment, packEncryptedData } from "./encoding";
 import { MAX_TOKENS, VERSION } from "./constants";
 import { encrypt, getEncryptionPublicKey } from "@metamask/eth-sig-util";
@@ -18,8 +18,8 @@ export function addTokenToMap(token: string, index: number) {
   index_map.set(index, token);
 }
 
-const zero_amounts = new Array<bigint>(MAX_TOKENS).fill(0n);
-export const zeroAmounts = () => [...zero_amounts];
+const zero_amounts: AmountsArray = [0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n, 0n];
+export const zeroAmounts = (): AmountsArray => [...zero_amounts];
 
 export type TokenAmount = { token: string; amount: bigint };
 
@@ -29,13 +29,13 @@ export type TokenAmount = { token: string; amount: bigint };
  */
 export class UtxoInput {
   commitment: bigint;
-  amounts: bigint[];
+  amounts: AmountsArray;
   blinding: bigint;
   index: bigint;
   privateKey: bigint;
   nullifier: bigint;
 
-  constructor(commitment: bigint, amounts: bigint[], blinding: bigint, index: bigint, privkey: bigint) {
+  constructor(commitment: bigint, amounts: AmountsArray, blinding: bigint, index: bigint, privkey: bigint) {
     if (amounts.length != MAX_TOKENS) {
       throw Error("Must have the correct number of amounts");
     }
@@ -73,7 +73,7 @@ export class UtxoInput {
  */
 export class UtxoOutput {
   commitment: bigint = 0n;
-  amounts: bigint[];
+  amounts: AmountsArray;
   publicKey: bigint;
   blinding: bigint;
 
@@ -82,7 +82,7 @@ export class UtxoOutput {
 
   isFinalized: boolean;
 
-  constructor(address: string, amounts: bigint[] = zeroAmounts()) {
+  constructor(address: string, amounts: AmountsArray = zeroAmounts()) {
     if (amounts.length != MAX_TOKENS && amounts.length != 0) {
       throw Error("Amount array has incorrect length");
     }

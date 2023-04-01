@@ -1,5 +1,6 @@
 import { EthEncryptedData } from "@metamask/eth-sig-util";
 import { MAX_TOKENS } from "./constants";
+import { AmountsArray } from "./utils";
 
 const NONCE_LENGTH = 24;
 const PUBKEY_LENGTH = 32;
@@ -21,7 +22,7 @@ export function decodeAddress(address: string): [bigint, string] {
   return [pubkey, encryptKey];
 }
 
-export function packCommitment(amount: bigint[], blinding: bigint): string {
+export function packCommitment(amount: AmountsArray, blinding: bigint): string {
   let amountBuffer = Buffer.from(amount[0].toString(16).padStart(32 * 2, "0"), "hex");
   for (let amt of amount.slice(1)) {
     amountBuffer = Buffer.concat([amountBuffer, Buffer.from(amt.toString(16).padStart(32 * 2, "0"), "hex")]);
@@ -30,7 +31,7 @@ export function packCommitment(amount: bigint[], blinding: bigint): string {
   return Buffer.concat([blindingBuffer, amountBuffer]).toString("hex");
 }
 
-export function unpackCommitment(data: string): { amounts: bigint[]; blinding: bigint } {
+export function unpackCommitment(data: string): { amounts: AmountsArray; blinding: bigint } {
   const buf = Buffer.from(data, "hex");
   const blinding = BigInt("0x" + buf.subarray(0, 32).toString("hex"));
   const amounts = new Array<bigint>(MAX_TOKENS);
