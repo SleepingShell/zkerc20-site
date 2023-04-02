@@ -4,14 +4,36 @@ import { AddressName } from "../../../pages";
 import { zeroAmounts, zeroOutput } from "../../../web3/utxo";
 import { zkAccount } from "../../../web3/zkAccount";
 import { depositProof } from "../../../web3/proof";
+import { TransactionProgress } from "./TransactionProgress";
+import { DepositArgsStruct, depositArgsToEthers } from "../../../web3/types";
+import { usePrepareZkErc20Deposit, useZkErc20Deposit } from "../../../generated";
 
 export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): JSX.Element {
   const [token, setToken] = React.useState("");
+  const [backdropOpen, setBackdropOpen] = React.useState(false);
+  const [backdropText, setBackdropText] = React.useState("");
+
   const to = useRef<HTMLInputElement>();
   const amount = useRef<HTMLInputElement>();
 
   const handleChange = (event: SelectChangeEvent) => {
     setToken(event.target.value);
+  };
+
+  const onProofGenerated = (args: DepositArgsStruct) => {
+    // TODO: Submit tx
+
+    console.log("Generated proof");
+    console.log(args);
+
+    const { config } = usePrepareZkErc20Deposit({
+      args: [depositArgsToEthers(args)],
+    });
+
+    const { data, isSuccess, write } = useZkErc20Deposit(config);
+    write?.();
+
+    setBackdropOpen(false);
   };
 
   const doDeposit = () => {
@@ -22,7 +44,14 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
     const output1 = receiver.payRaw(amounts);
     const output2 = zeroOutput();
 
-    const args = depositProof(amounts, [output1, output2]);
+    depositProof(amounts, [output1, output2]).then((args) => onProofGenerated(args));
+
+    setBackdropText("Generating proof...");
+    setBackdropOpen(true);
+  };
+
+  const handleBackdropClose = () => {
+    setBackdropOpen(false);
   };
 
   const menuItems: JSX.Element[] = [];
@@ -50,6 +79,8 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
       <Button variant="contained" onClick={doDeposit}>
         Deposit
       </Button>
+
+      <TransactionProgress open={backdropOpen} text={backdropText} handleClose={handleBackdropClose} />
     </Box>
   );
 }

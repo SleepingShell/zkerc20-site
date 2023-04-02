@@ -31,8 +31,16 @@ type bigintToBigNumber<T> = {
   [K in keyof T]: T[K] extends bigint ? BigNumber : T[K] extends unknown[] ? bigintToBigNumber<T[K]> : T[K];
 };
 
+type forceString<T> = {
+  [K in keyof T]: T[K] extends Uint8Array | `0x${string}`
+    ? `0x${string}`
+    : T[K] extends unknown[]
+    ? forceString<T[K]>
+    : T[K];
+};
+
 export type DepositArgsStruct = Mutable<GetArgs<typeof zkErc20ABI, "deposit">["args"][0]>;
-export type DepositArgsStructEthers = bigintToBigNumber<DepositArgsStruct>;
+export type DepositArgsStructEthers = forceString<bigintToBigNumber<DepositArgsStruct>>;
 export type AmountsArray = DepositArgsStruct["depositAmount"];
 
 // I hate this
@@ -53,9 +61,23 @@ export function depositArgsToEthers(args: Mutable<DepositArgsStruct>): DepositAr
   args["depositAmount"].map((v, i) => (amounts[i] = BigNumber.from(v)));
 
   const { depositAmount, outCommitments, ...strings } = args;
+
+  const handleStringUnion = (x: `0x${string}` | Uint8Array): `0x${string}` => {
+    if (typeof x === "string") {
+      return x;
+    } else {
+      //return x.toString();
+      return ("0x" +
+        Array.from(x)
+          .map((i) => i.toString(16).padStart(2, "0"))
+          .join("")) as `0x${string}`;
+    }
+  };
+
   return {
     depositAmount: amounts,
     outCommitments: [BigNumber.from(args["outCommitments"][0]), BigNumber.from(args["outCommitments"][1])],
-    ...strings,
+    encryptedOutputs: [handleStringUnion(args["encryptedOutputs"][0]), handleStringUnion(args["encryptedOutputs"][1])],
+    proof: handleStringUnion(args["proof"]),
   };
 }
