@@ -1,6 +1,7 @@
 import { decrypt, getEncryptionPublicKey } from "@metamask/eth-sig-util";
 
-import { randomBytes32, hash, AmountsArray } from "./utils";
+import { randomBytes32, hash } from "./utils";
+import { AmountsArray } from "./types";
 
 import { encodeAddress, decodeAddress, unpackEncryptedData, unpackCommitment } from "./encoding";
 

@@ -1,4 +1,5 @@
-import { randomBytes32, hash, AmountsArray } from "./utils";
+import { randomBytes32, hash } from "./utils";
+import { AmountsArray } from "./types";
 import { decodeAddress, encodeAddress, packCommitment, packEncryptedData } from "./encoding";
 import { MAX_TOKENS, VERSION } from "./constants";
 import { encrypt, getEncryptionPublicKey } from "@metamask/eth-sig-util";

@@ -1,13 +1,9 @@
-import { MAX_TOKENS } from "./constants";
-
 import { randomBytes } from "crypto";
 import { BigNumber } from "ethers";
 
 import { HashFunction } from "@zk-kit/incremental-merkle-tree";
 import { buildPoseidon } from "circomlibjs";
 import { getCurveFromName } from "ffjavascript";
-import { AbiParametersToPrimitiveTypes, ExtractAbiFunction } from "abitype";
-import { zkErc20ABI } from "../generated";
 
 export const randomBytes32 = () => BigNumber.from(randomBytes(32)).or(BigNumber.from(1).shl(255)).toBigInt();
 
@@ -26,12 +22,4 @@ export let hashIsReady: boolean = false;
   _hash = await getPoseidon();
   hashIsReady = true;
 })();
-
 export const hash = (data: any): any => _hash(data);
-
-export type DepositArgsStruct = AbiParametersToPrimitiveTypes<
-  ExtractAbiFunction<typeof zkErc20ABI, "deposit">["inputs"][0]["components"]
->;
-
-type Mutable<T extends readonly unknown[]> = { -readonly [K in keyof T]: T[K] };
-export type AmountsArray = Mutable<DepositArgsStruct[0]>;

@@ -1,6 +1,6 @@
 //import { plonk } from "snarkjs";
 const { plonk } = require("snarkjs");
-import { DepositArgsStruct, AmountsArray } from "./utils";
+import { DepositArgsStruct, AmountsArray } from "./types";
 import { UtxoOutput } from "./utxo";
 
 const depositCircuitPath = "/zkproof/Deposit.wasm";
@@ -21,21 +21,15 @@ export async function depositProof(depositAmount: AmountsArray, outputs: UtxoOut
   const calldata: string = await plonk.exportSolidityCallData(proof, publicSignals);
   const proofCalldata = calldata.split(",")[0];
 
-  /*
   const args: DepositArgsStruct = {
     depositAmount: depositAmount,
     outCommitments: [outputs[0].commitment, outputs[1].commitment],
-    encryptedOutputs: ["0x" + outputs[0].encryptedData, "0x" + outputs[1].encryptedData],
-    proof: proofCalldata,
+    encryptedOutputs: [
+      ("0x" + outputs[0].encryptedData) as `0x{string}`,
+      ("0x" + outputs[1].encryptedData) as `0x{string}`,
+    ],
+    proof: proofCalldata as `0x{string}`,
   };
-  */
-
-  const args: DepositArgsStruct = [
-    depositAmount,
-    [outputs[0].commitment, outputs[1].commitment],
-    [("0x" + outputs[0].encryptedData) as `0x{string}`, ("0x" + outputs[1].encryptedData) as `0x{string}`],
-    proofCalldata as `0x{string}`,
-  ];
 
   return args;
 }

@@ -62,7 +62,6 @@ function Page({ tokens, treeDepth }: { tokens: [`0x${string}`, string][]; treeDe
   const tokenMap: Map<`0x${string}`, string> = new Map(tokens);
   return (
     <>
-      <script id="snarkjs" src="snarkjs.min.js" />
       {Header()}
 
       {MintButton(1000n * 10n ** 18n)}
