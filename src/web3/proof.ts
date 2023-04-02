@@ -1,10 +1,9 @@
-import { ExtractAbiFunction, AbiParametersToPrimitiveTypes, TypedDataToPrimitiveTypes } from "abitype";
-import { plonk } from "snarkjs";
-import { usePrepareZkErc20Deposit, useZkErc20Deposit, zkErc20ABI } from "../generated";
+//import { plonk } from "snarkjs";
+const { plonk } = require("snarkjs");
 import { DepositArgsStruct, AmountsArray } from "./utils";
 import { UtxoOutput } from "./utxo";
 
-const depositCircuitPath = "";
+const depositCircuitPath = "/zkproof/Deposit.wasm";
 const depositCircuitKeyPath = "/zkproof/Deposit.zkey";
 
 export async function depositProof(depositAmount: AmountsArray, outputs: UtxoOutput[]): Promise<DepositArgsStruct> {

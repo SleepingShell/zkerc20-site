@@ -97,7 +97,11 @@ export function Application({
 
   const addToQueue = (title: string, body: JSX.Element, serverity: AlertColor) => {
     setNotifyQueue(notifyQueue.concat({ title: title, body: body, serverity: serverity }));
-    setNotifyOpen(true);
+    console.log(
+      "q",
+      notifyQueue.map((v) => v.body)
+    );
+    !notifyOpen && setNotifyOpen(true);
   };
 
   const onNotifyClose = () => {
@@ -137,8 +141,8 @@ export function Application({
       addToQueue("Account Import", <strong>{account.getShortAddress()}</strong>, "success");
       setPoolAccounts(poolAccounts.concat(account));
     } catch (e) {
+      addToQueue("Account Import", <strong>Error Importing Account</strong>, "error");
       console.log("addKey", e);
-      addToQueue("Account Import", <strong>Error Importings</strong>, "error");
     }
   };
 

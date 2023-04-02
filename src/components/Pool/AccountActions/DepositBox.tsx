@@ -1,6 +1,9 @@
 import React, { useRef } from "react";
 import { Box, Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
 import { AddressName } from "../../../pages";
+import { zeroAmounts, zeroOutput } from "../../../web3/utxo";
+import { zkAccount } from "../../../web3/zkAccount";
+import { depositProof } from "../../../web3/proof";
 
 export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): JSX.Element {
   const [token, setToken] = React.useState("");
@@ -12,7 +15,14 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
   };
 
   const doDeposit = () => {
-    console.log(to.current!.value);
+    //TODO: Error handling
+    const receiver = zkAccount.fromAddress(to.current!.value);
+    const amounts = zeroAmounts();
+
+    const output1 = receiver.payRaw(amounts);
+    const output2 = zeroOutput();
+
+    const args = depositProof(amounts, [output1, output2]);
   };
 
   const menuItems: JSX.Element[] = [];

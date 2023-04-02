@@ -2,6 +2,11 @@ This is a [wagmi](https://wagmi.sh) + [RainbowKit](https://rainbowkit.com) + [Ne
 
 # zkERC20-site
 
+# TODOs
+
+- Fix notifications
+  - Queueing multiple notifications overwrites the current showing one
+
 ## Notes
 
 Typescript/wagmi cannot read json as a constant for type-safety. Therefore follow these simple steps:
