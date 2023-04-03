@@ -5,34 +5,31 @@ import { zeroAmounts, zeroOutput } from "../../../web3/utxo";
 import { zkAccount } from "../../../web3/zkAccount";
 import { depositProof } from "../../../web3/proof";
 import { TransactionProgress } from "./TransactionProgress";
-import { DepositArgsStruct, depositArgsToEthers } from "../../../web3/types";
+import { DepositArgsStruct, DepositArgsStructEthers, depositArgsToEthers } from "../../../web3/types";
 import { usePrepareZkErc20Deposit, useZkErc20Deposit } from "../../../generated";
 
 export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): JSX.Element {
   const [token, setToken] = React.useState("");
   const [backdropOpen, setBackdropOpen] = React.useState(false);
   const [backdropText, setBackdropText] = React.useState("");
+  const [depositArgs, setDepositArgs] = React.useState<DepositArgsStructEthers>();
 
   const to = useRef<HTMLInputElement>();
   const amount = useRef<HTMLInputElement>();
+
+  const { config: depositConfig } = usePrepareZkErc20Deposit({ args: [depositArgs as DepositArgsStructEthers] });
+  const { write } = useZkErc20Deposit(depositConfig);
 
   const handleChange = (event: SelectChangeEvent) => {
     setToken(event.target.value);
   };
 
   const onProofGenerated = (args: DepositArgsStruct) => {
-    // TODO: Submit tx
-
     console.log("Generated proof");
     console.log(args);
 
-    const { config } = usePrepareZkErc20Deposit({
-      args: [depositArgsToEthers(args)],
-    });
-
-    const { data, isSuccess, write } = useZkErc20Deposit(config);
+    setDepositArgs(depositArgsToEthers(args));
     write?.();
-
     setBackdropOpen(false);
   };
 
