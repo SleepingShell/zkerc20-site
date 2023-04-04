@@ -35,16 +35,32 @@ function getTokenData({ address, name }: { address: `0x${string}`; name?: string
   };
 }
 
+function getTokenBalancesOfAccount(tokens: `0x${string}`[], accountAddress: `0x${string}`): Map<`0x${string}`, bigint> {
+  const balances: Map<`0x${string}`, bigint> = new Map();
+
+  for (const token of tokens) {
+    let { data } = useErc20BalanceOf({ address: token, args: [accountAddress] });
+    balances.set(token, (data ??= BigNumber.from(0)).toBigInt());
+  }
+
+  return balances;
+}
+
 export function TokenInfoTable(tokens: Map<`0x${string}`, string>): JSX.Element {
-  //const tokenInfos = tokens.map((token) => getTokenData(token));
-  const tokenInfos: TokenInfo[] = [];
-  tokens.forEach((name, addr) => tokenInfos.push(getTokenData({ address: addr, name: name })));
-
   const { isConnected, address } = useAccount();
+  const tokenInfos: TokenInfo[] = [];
+  const accountBalances: Map<`0x${string}`, bigint> = new Map();
+  tokens.forEach((name, addr) => {
+    tokenInfos.push(getTokenData({ address: addr, name: name }));
 
+    const a = address ?? "0x0";
+    let { data } = useErc20BalanceOf({ address: addr, args: [a] });
+    accountBalances.set(addr, (data ??= BigNumber.from(0)).toBigInt());
+  });
+
+  // ERROR: Rendered more hooks than during the previous render.
   const tokeInfoToRow = (info: TokenInfo): JSX.Element => {
-    let { data } = useErc20BalanceOf({ address: info.address, args: [address!] });
-    const accountBalance = data !== undefined ? data.toBigInt() : 0n;
+    const accountBalance = accountBalances.get(info.address) as bigint;
 
     return (
       <TableRow key="{info.address}">
