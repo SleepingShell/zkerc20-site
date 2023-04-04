@@ -17,6 +17,16 @@ const NUM_TOKENS = 1; //TODO: Don't constant this
 // TODO: NOT GOOD
 export const provider = client.getProvider({ chainId: sepolia.id });
 
+export type AddressName = {
+  address: `0x${string}`;
+  name: string;
+};
+
+export type IndexAddress = {
+  address: `0x${string}`;
+  index: number;
+};
+
 export async function getStaticProps() {
   const contract = getContract({
     address: zkErc20Address[11155111],
@@ -24,11 +34,11 @@ export async function getStaticProps() {
     signerOrProvider: provider,
   });
 
-  const promises: Promise<AddressName>[] = [];
+  type AddressNameIndex = AddressName & IndexAddress;
+  const promises: Promise<AddressNameIndex>[] = [];
   for (let i = 0; i < NUM_TOKENS; i++) {
     const fn = async () => {
       const addr = await contract.tokens(BigNumber.from(i));
-      addTokenToMap(addr, i);
       return {
         address: addr,
         name: await getContract({
@@ -36,30 +46,39 @@ export async function getStaticProps() {
           abi: erc20ABI,
           signerOrProvider: provider,
         }).name(),
+        index: i,
       };
     };
 
     promises.push(fn());
   }
 
+  const vals = await Promise.all(promises); //.filter(o => o.address != null);
+
   return {
     props: {
       numTokens: 1,
-      tokens: (await Promise.all(promises)).map((o) => [o.address, o.name]),
+      tokens: vals.map((o) => [o.address, o.name]),
+      tokenIndexes: vals.map((o) => ({ index: o.index, address: o.address })),
       treeDepth: 20,
     },
   };
 }
 
-export type AddressName = {
-  address: `0x${string}`;
-  name: string;
-};
-
-function Page({ tokens, treeDepth }: { tokens: [`0x${string}`, string][]; treeDepth: number }) {
+function Page({
+  tokens,
+  tokenIndexes,
+  treeDepth,
+}: {
+  tokens: [`0x${string}`, string][];
+  tokenIndexes: IndexAddress[];
+  treeDepth: number;
+}) {
   const { isConnected } = useAccount();
 
   const tokenMap: Map<`0x${string}`, string> = new Map(tokens);
+  tokenIndexes.forEach((i) => addTokenToMap(i.address, i.index));
+
   return (
     <>
       {Header()}

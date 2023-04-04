@@ -6,6 +6,8 @@ This is a [wagmi](https://wagmi.sh) + [RainbowKit](https://rainbowkit.com) + [Ne
 
 - Fix notifications
   - Queueing multiple notifications overwrites the current showing one
+- Create a context for the contract's address (so we don't have to keep doing zkErc20Address[11155111])
+- Get rid of hardcoded chain data! (like above)
 
 ## Notes
 
