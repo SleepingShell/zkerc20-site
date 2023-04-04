@@ -132,23 +132,16 @@ export function Application({
     }
   };
 
-  //const [observer, setObserver] = useState<Observer>();
   let commitmentTree = useRef<IncrementalMerkleTree>();
   let treeInitialized = useRef(false);
   let commitToAdd = useRef<{ commitment: bigint; index: bigint }[]>([]);
 
-  const handleCommitmentEvent = (commitment: bigint, index: bigint, data: `0x${string}`) => {
-    updateTreeOnEvent(commitmentTree.current!, commitToAdd.current, commitment, index, data);
-    poolAccounts.forEach((acc) => acc.attemptDecryptAndAdd(commitment, data, index));
-  };
-
   useEffect(() => {
     if (hashIsReady) {
-      console.log("Building commitment tree");
-
       commitmentTree.current ??= buildMerkleTree(20);
 
       if (isConnected && !treeInitialized.current) {
+        console.log("Building commitment tree");
         initializeCommitmentTree(commitmentTree.current);
         treeInitialized.current = true;
       }
@@ -157,10 +150,10 @@ export function Application({
 
   useZkErc20CommitmentEvent({
     listener: (c, i, d) => {
-      handleCommitmentEvent(c.toBigInt(), i.toBigInt(), d);
-
       const cb = c.toBigInt();
       const ib = i.toBigInt();
+
+      updateTreeOnEvent(commitmentTree.current!, commitToAdd.current, cb, ib, d);
 
       // TODO: Look at performance of this, we can stop iterating on accounts once we find a valid
       const newAccounts = poolAccounts.map((acc, i) => {
