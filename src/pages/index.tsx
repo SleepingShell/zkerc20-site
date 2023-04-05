@@ -5,27 +5,37 @@ import { getContract } from "@wagmi/core";
 
 import { Header } from "../components/Common/Header";
 import { MintButton } from "../components/MintButton";
+import { TokenInfo, TokensContext } from "../components/TokensContext";
+
 import { erc20ABI, zkErc20ABI, zkErc20Address } from "../generated";
 import { client } from "../wagmi";
 import { addTokenToMap } from "../web3/utxo";
 
 import "../web3/utils";
 import { Application } from "../components/Pool/Application";
+import { T } from "abitype/dist/config-79fabb4e";
 
 const NUM_TOKENS = 1; //TODO: Don't constant this
 
 // TODO: NOT GOOD
 export const provider = client.getProvider({ chainId: sepolia.id });
 
-export type AddressName = {
-  address: `0x${string}`;
-  name: string;
+declare interface BigInt {
+  toJSON(): string;
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt#use_within_json
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unreachable code error
+BigInt.prototype.toJSON = function (): string {
+  return this.toString();
 };
 
-export type IndexAddress = {
-  address: `0x${string}`;
-  index: number;
+type Replace<T, K extends keyof T, TNew> = Omit<T, K> & {
+  [P in K]: TNew;
 };
+
+type parsableTokenInfo = Replace<TokenInfo, "totalSupply", string>;
 
 export async function getStaticProps() {
   const contract = getContract({
@@ -34,58 +44,55 @@ export async function getStaticProps() {
     signerOrProvider: provider,
   });
 
-  type AddressNameIndex = AddressName & IndexAddress;
-  const promises: Promise<AddressNameIndex>[] = [];
+  const promises: Promise<parsableTokenInfo>[] = [];
   for (let i = 0; i < NUM_TOKENS; i++) {
     const fn = async () => {
       const addr = await contract.tokens(BigNumber.from(i));
+      const info = getContract({
+        address: addr,
+        abi: erc20ABI,
+        signerOrProvider: provider,
+      });
       return {
         address: addr,
-        name: await getContract({
-          address: addr,
-          abi: erc20ABI,
-          signerOrProvider: provider,
-        }).name(),
+        name: await info.name(),
+        decimals: await info.decimals(),
         index: i,
+        totalSupply: (await info.totalSupply()).toBigInt().toString(),
       };
     };
 
     promises.push(fn());
   }
 
-  const vals = await Promise.all(promises); //.filter(o => o.address != null);
-
   return {
     props: {
       numTokens: 1,
-      tokens: vals.map((o) => [o.address, o.name]),
-      tokenIndexes: vals.map((o) => ({ index: o.index, address: o.address })),
+      tokens: await Promise.all(promises),
       treeDepth: 20,
     },
   };
 }
 
-function Page({
-  tokens,
-  tokenIndexes,
-  treeDepth,
-}: {
-  tokens: [`0x${string}`, string][];
-  tokenIndexes: IndexAddress[];
-  treeDepth: number;
-}) {
+function Page({ tokens, treeDepth }: { tokens: parsableTokenInfo[]; treeDepth: number }) {
   const { isConnected } = useAccount();
 
-  const tokenMap: Map<`0x${string}`, string> = new Map(tokens);
-  tokenIndexes.forEach((i) => addTokenToMap(i.address, i.index));
+  const tokensMap: Map<`0x${string}`, TokenInfo> = new Map();
+  tokens.forEach((ptoken) => {
+    const token: TokenInfo = Object.assign(ptoken, { totalSupply: BigInt(ptoken.totalSupply) });
+    tokensMap.set(ptoken.address, token);
+    addTokenToMap(token.address, token.index);
+  });
+
+  console.log(tokensMap);
 
   return (
-    <>
+    <TokensContext.Provider value={tokensMap}>
       {Header()}
 
       {MintButton(1000n * 10n ** 18n)}
-      <Application tokens={tokenMap} treeDepth={treeDepth} />
-    </>
+      <Application treeDepth={treeDepth} />
+    </TokensContext.Provider>
   );
 }
 

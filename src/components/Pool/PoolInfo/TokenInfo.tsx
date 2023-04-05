@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import { BigNumber } from "ethers";
+import { useContext } from "react";
 import { useAccount } from "wagmi";
 import {
   useErc20BalanceOf,
@@ -9,53 +10,36 @@ import {
   useErc20TotalSupply,
   zkErc20Address,
 } from "../../../generated";
-import { AddressName } from "../../../pages";
 import { bigintToDecimalNumber } from "../../../utils";
+import { TokenInfo, TokensContext } from "../../TokensContext";
 
-type TokenInfo = {
-  address: `0x${string}`;
-  name: string;
-  decimals: number;
-  poolBalance: bigint;
-  totalSuppy: bigint;
-};
+type infoWithPoolBalance = TokenInfo & { poolBalance: bigint };
 
-function getTokenData({ address, name }: { address: `0x${string}`; name?: string }): TokenInfo {
-  const addr = zkErc20Address[11155111];
-  let { data: balance } = useErc20BalanceOf({ address: address, args: [addr] });
-  let { data: decimals } = useErc20Decimals({ address });
-  let { data: totalSupply } = useErc20TotalSupply({ address });
-
-  return {
-    address: address,
-    name: (name ??= ""),
-    decimals: (decimals ??= 1),
-    poolBalance: (balance ??= BigNumber.from(0)).toBigInt(),
-    totalSuppy: (totalSupply ??= BigNumber.from(1)).toBigInt(),
-  };
-}
-
-export function TokenInfoTable(tokens: Map<`0x${string}`, string>): JSX.Element {
+export function TokenInfoTable(): JSX.Element {
+  const tokens = useContext(TokensContext);
   const { isConnected, address } = useAccount();
-  const tokenInfos: TokenInfo[] = [];
+  const tokenInfos: infoWithPoolBalance[] = [];
   const accountBalances: Map<`0x${string}`, bigint> = new Map();
-  tokens.forEach((name, addr) => {
-    tokenInfos.push(getTokenData({ address: addr, name: name }));
 
+  tokens.forEach((token) => {
     const a = address ?? "0x0";
-    let { data } = useErc20BalanceOf({ address: addr, args: [a] });
-    accountBalances.set(addr, (data ??= BigNumber.from(0)).toBigInt());
+    let { data: accBalance } = useErc20BalanceOf({ address: token.address, args: [a] });
+    let { data: poolBalance } = useErc20BalanceOf({ address: token.address, args: [zkErc20Address[11155111]] });
+    //token.poolBalance = (poolBalance ??= BigNumber.from(0)).toBigInt();
+
+    accountBalances.set(token.address, (accBalance ??= BigNumber.from(0)).toBigInt());
+    tokenInfos.push({ ...token, ...{ poolBalance: (poolBalance ??= BigNumber.from(0)).toBigInt() } });
   });
 
   // ERROR: Rendered more hooks than during the previous render.
-  const tokeInfoToRow = (info: TokenInfo): JSX.Element => {
+  const tokeInfoToRow = (info: infoWithPoolBalance): JSX.Element => {
     const accountBalance = accountBalances.get(info.address) as bigint;
 
     return (
       <TableRow key="{info.address}">
         <TableCell>{info.name}</TableCell>
         <TableCell>{bigintToDecimalNumber(info.poolBalance, info.decimals)}</TableCell>
-        <TableCell>{bigintToDecimalNumber((info.poolBalance * 100n) / info.totalSuppy, info.decimals)}%</TableCell>
+        <TableCell>{bigintToDecimalNumber((info.poolBalance * 100n) / info.totalSupply, info.decimals)}%</TableCell>
         <TableCell>{bigintToDecimalNumber(accountBalance, info.decimals)}</TableCell>
       </TableRow>
     );

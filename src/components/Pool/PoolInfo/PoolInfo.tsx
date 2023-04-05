@@ -11,11 +11,11 @@ function totalCommitments(): JSX.Element {
   return <div>Total anonymous set size: {commitments.toString()}</div>;
 }
 
-export function PoolInfo(tokens: Map<`0x${string}`, string>): JSX.Element {
+export function PoolInfo(): JSX.Element {
   return (
     <Grid2 container>
       <Grid2 xs={12}>{totalCommitments()}</Grid2>
-      <Grid2 xs={12}>{TokenInfoTable(tokens)}</Grid2>
+      <Grid2 xs={12}>{TokenInfoTable()}</Grid2>
     </Grid2>
   );
 }

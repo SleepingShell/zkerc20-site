@@ -1,10 +1,9 @@
 import { BigNumber, ethers } from "ethers";
 import { getContract } from "@wagmi/core";
 import { useZkErc20CommitmentEvent, zkErc20ABI, zkErc20Address } from "../../generated";
-import { buildMerkleTree, MerkleTree } from "../../web3/merkleTree";
+import { buildMerkleTree } from "../../web3/merkleTree";
 import { client } from "../../wagmi";
 import { sepolia } from "@wagmi/chains";
-import { AddressName } from "../../pages";
 import { useEffect, useRef, useState } from "react";
 import { zkAccount } from "../../web3/zkAccount";
 import { AccountStatusMessage, PoolAccountBox } from "./AccountActions/PoolAccountBox";
@@ -69,13 +68,7 @@ async function initializeCommitmentTree(tree: IncrementalMerkleTree) {
   console.log(`Initialized commitment tree with ${tree.leaves.length} leaves`);
 }
 
-export function Application({
-  tokens,
-  treeDepth,
-}: {
-  tokens: Map<`0x${string}`, string>;
-  treeDepth: number;
-}): JSX.Element {
+export function Application({ treeDepth }: { treeDepth: number }): JSX.Element {
   const { isConnected } = useAccount();
   const [poolAccounts, setPoolAccounts] = useState<zkAccount[]>([]);
   const [notifyQueue, setNotifyQueue] = useState<{ title: string; body: JSX.Element; serverity: AlertColor }[]>([]);
@@ -181,8 +174,8 @@ export function Application({
   return (
     <>
       {notifyElement()}
-      {PoolInfo(tokens)}
-      <DepositBox tokens={tokens} />
+      <PoolInfo />
+      <DepositBox />
       <PoolAccountBox accounts={poolAccounts} onKeyImport={addKey} />
     </>
   );

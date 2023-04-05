@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import { Box, Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
-import { AddressName } from "../../../pages";
 import { zeroAmounts, zeroOutput } from "../../../web3/utxo";
 import { zkAccount } from "../../../web3/zkAccount";
 import { depositProof } from "../../../web3/proof";
@@ -16,11 +15,13 @@ import {
 } from "../../../generated";
 import { useAccount } from "wagmi";
 import { BigNumber } from "ethers";
+import { TokensContext } from "../../TokensContext";
 
-export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): JSX.Element {
+export function DepositBox(): JSX.Element {
+  const tokens = useContext(TokensContext);
   const { isConnected, address } = useAccount();
 
-  const [token, setToken] = React.useState("");
+  const [token, setToken] = React.useState<`0x${string}`>("0x0");
   const [backdropOpen, setBackdropOpen] = React.useState(false);
   const [backdropText, setBackdropText] = React.useState("");
   const [depositArgs, setDepositArgs] = React.useState<DepositArgsStructEthers>();
@@ -29,20 +30,20 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
   const amount = useRef<HTMLInputElement>();
 
   //TODO: Don't hardcode token
-  const tokenA = "0x8825aDeD4cd69290Aa6E730FD0E9F9747054E84F";
+  //const tokenA = "0x8825aDeD4cd69290Aa6E730FD0E9F9747054E84F";
   const { config: depositConfig } = usePrepareZkErc20Deposit({
     args: [depositArgs as DepositArgsStructEthers],
     enabled: depositArgs != null,
   });
   const { data, write, isError, error, status } = useZkErc20Deposit(depositConfig);
   const { config: approvalConfig } = usePrepareErc20Approve({
-    address: tokenA,
+    address: token,
     args: [zkErc20Address[11155111], BigNumber.from(2).pow(256).sub(1)],
   });
   const { write: writeApproval } = useErc20Approve(approvalConfig);
 
   const { data: approvalAmount } = useErc20Allowance({
-    address: tokenA,
+    address: token,
     args: [address != null ? address : "0x0", zkErc20Address[11155111]],
   });
 
@@ -54,7 +55,7 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
   }, [write]);
 
   const handleChange = (event: SelectChangeEvent) => {
-    setToken(event.target.value);
+    setToken(event.target.value as `0x${string}`);
   };
 
   const onProofGenerated = (args: DepositArgsStruct) => {
@@ -66,7 +67,7 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
   };
 
   const checkApproval = (amount: bigint) => {
-    // TODO: Make a UI popup\
+    // TODO: Make a UI popup
     if (approvalAmount == null || approvalAmount!.toBigInt() < amount) {
       writeApproval?.();
     }
@@ -77,8 +78,13 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
     const receiver = zkAccount.fromAddress(to.current!.value);
     const value = BigInt(amount.current!.value);
 
+    // TODO: Notification
+    if (token == "0x0") {
+      return;
+    }
+
     checkApproval(value);
-    const output1 = receiver.pay({ token: tokenA, amount: value });
+    const output1 = receiver.pay({ token: token, amount: value });
     const output2 = zeroOutput();
 
     depositProof(output1.amounts, [output1, output2]).then((args) => onProofGenerated(args));
@@ -92,11 +98,11 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
   };
 
   const menuItems: JSX.Element[] = [];
-  tokens.forEach((name, addr) => {
+  tokens.forEach((token) => {
     menuItems.push(
-      <MenuItem value={addr} key={name}>
+      <MenuItem value={token.address} key={token.name}>
         {" "}
-        {name}{" "}
+        {token.name}{" "}
       </MenuItem>
     );
   });
