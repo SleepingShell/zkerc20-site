@@ -2,14 +2,7 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from
 import { BigNumber } from "ethers";
 import { useContext } from "react";
 import { useAccount } from "wagmi";
-import {
-  useErc20BalanceOf,
-  useErc20Decimals,
-  useErc20Name,
-  useErc20Symbol,
-  useErc20TotalSupply,
-  zkErc20Address,
-} from "../../../generated";
+import { useErc20BalanceOf, zkErc20Address } from "../../../generated";
 import { bigintToDecimalNumber } from "../../../utils";
 import { TokenInfo, TokensContext } from "../../TokensContext";
 
@@ -25,13 +18,11 @@ export function TokenInfoTable(): JSX.Element {
     const a = address ?? "0x0";
     let { data: accBalance } = useErc20BalanceOf({ address: token.address, args: [a] });
     let { data: poolBalance } = useErc20BalanceOf({ address: token.address, args: [zkErc20Address[11155111]] });
-    //token.poolBalance = (poolBalance ??= BigNumber.from(0)).toBigInt();
 
     accountBalances.set(token.address, (accBalance ??= BigNumber.from(0)).toBigInt());
     tokenInfos.push({ ...token, ...{ poolBalance: (poolBalance ??= BigNumber.from(0)).toBigInt() } });
   });
 
-  // ERROR: Rendered more hooks than during the previous render.
   const tokeInfoToRow = (info: infoWithPoolBalance): JSX.Element => {
     const accountBalance = accountBalances.get(info.address) as bigint;
 
