@@ -34,7 +34,7 @@ export class zkAccount {
     return Object.assign(new zkAccount(undefined), {
       privateKey: null,
       publicKey: pubkey,
-      encryptKey: encryptkey,
+      encryptionKey: encryptkey,
       ownedUtxos: null,
     });
   }
@@ -46,9 +46,9 @@ export class zkAccount {
   getShortAddress(): string {
     const addr = this.getAddress();
     return addr
-      .slice(0, 4)
+      .slice(0, 8)
       .concat("...")
-      .concat(addr.slice(addr.length - 4));
+      .concat(addr.slice(addr.length - 8));
   }
 
   /**

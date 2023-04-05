@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Box, Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from "@mui/material";
 import { AddressName } from "../../../pages";
 import { zeroAmounts, zeroOutput } from "../../../web3/utxo";
@@ -30,8 +30,11 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
 
   //TODO: Don't hardcode token
   const tokenA = "0x8825aDeD4cd69290Aa6E730FD0E9F9747054E84F";
-  const { config: depositConfig } = usePrepareZkErc20Deposit({ args: [depositArgs as DepositArgsStructEthers] });
-  const { write } = useZkErc20Deposit(depositConfig);
+  const { config: depositConfig } = usePrepareZkErc20Deposit({
+    args: [depositArgs as DepositArgsStructEthers],
+    enabled: depositArgs != null,
+  });
+  const { data, write, isError, error, status } = useZkErc20Deposit(depositConfig);
   const { config: approvalConfig } = usePrepareErc20Approve({
     address: tokenA,
     args: [zkErc20Address[11155111], BigNumber.from(2).pow(256).sub(1)],
@@ -43,6 +46,13 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
     args: [address != null ? address : "0x0", zkErc20Address[11155111]],
   });
 
+  useEffect(() => {
+    write?.();
+    setDepositArgs(undefined);
+    console.log(status);
+    console.log(data);
+  }, [write]);
+
   const handleChange = (event: SelectChangeEvent) => {
     setToken(event.target.value);
   };
@@ -52,7 +62,6 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
     console.log(args);
 
     setDepositArgs(depositArgsToEthers(args));
-    write?.();
     setBackdropOpen(false);
   };
 
@@ -109,6 +118,7 @@ export function DepositBox({ tokens }: { tokens: Map<`0x${string}`, string> }): 
       </Button>
 
       <TransactionProgress open={backdropOpen} text={backdropText} handleClose={handleBackdropClose} />
+      {isError && <div>Error: {error?.message}</div>}
     </Box>
   );
 }

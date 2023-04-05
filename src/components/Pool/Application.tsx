@@ -157,22 +157,21 @@ export function Application({
 
       // TODO: Look at performance of this, we can stop iterating on accounts once we find a valid
       const newAccounts = poolAccounts.map((acc, i) => {
-        const newAcc: zkAccount = Object.assign({}, acc);
-        const valid = newAcc.attemptDecryptAndAdd(cb, d, ib);
+        const valid = acc.attemptDecryptAndAdd(cb, d, ib);
         if (valid) {
           // Add to notify
-          const utxo = newAcc.getInput(newAcc.ownedUtxos.length);
+          const utxo = acc.getInput(acc.ownedUtxos.length - 1);
           for (const amount of utxo.getAmounts()) {
             addToNotifyQueue(
               "Received Value",
               <>
-                mount.amount <strong>{amount.token}</strong>
+                {amount.amount} <strong>{amount.token}</strong>
               </>,
               "info"
             );
           }
         }
-        return newAcc;
+        return acc;
       });
 
       setPoolAccounts(newAccounts);

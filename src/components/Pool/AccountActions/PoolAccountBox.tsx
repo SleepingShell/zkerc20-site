@@ -55,15 +55,17 @@ export function PoolAccountBox({
       </Button>
       <List>
         {accounts.map((account) => (
-          <ListItem sx={{ maxWidth: 400 }}>
+          <ListItem key={"list" + account.getAddress()} sx={{ maxWidth: 400 }}>
             <ListItemText
-              primary={account.getAddress()}
+              primary={account.getShortAddress()}
               primaryTypographyProps={{
                 variant: "body1",
+                /*
                 style: {
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                 },
+                */
               }}
             />
             <Button variant="outlined" onClick={() => copyTextToClipboard(account.getAddress())}>
