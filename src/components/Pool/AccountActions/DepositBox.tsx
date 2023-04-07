@@ -74,14 +74,14 @@ export function DepositBox(): JSX.Element {
   };
 
   const doDeposit = () => {
-    //TODO: Error handling
-    const receiver = zkAccount.fromAddress(to.current!.value);
-    const value = BigInt(amount.current!.value);
-
     // TODO: Notification
     if (token == "0x0") {
       return;
     }
+
+    //TODO: Error handling
+    const receiver = zkAccount.fromAddress(to.current!.value);
+    const value = BigInt(amount.current!.value) * 10n ** BigInt(tokens.get(token)!.decimals);
 
     checkApproval(value);
     const output1 = receiver.pay({ token: token, amount: value });

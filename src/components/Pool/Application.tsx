@@ -4,7 +4,7 @@ import { useZkErc20CommitmentEvent, zkErc20ABI, zkErc20Address } from "../../gen
 import { buildMerkleTree } from "../../web3/merkleTree";
 import { client } from "../../wagmi";
 import { sepolia } from "@wagmi/chains";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { zkAccount } from "../../web3/zkAccount";
 import { AccountStatusMessage, PoolAccountBox } from "./AccountActions/PoolAccountBox";
 import { PoolInfo } from "./PoolInfo/PoolInfo";
@@ -15,6 +15,7 @@ import { hashIsReady } from "../../web3/utils";
 import { AlertColor } from "@mui/material";
 import { GenericNotify } from "./GenericNotify";
 import { IncrementalMerkleTree } from "@zk-kit/incremental-merkle-tree";
+import { TokensContext } from "../TokensContext";
 
 export type NameValue = { name: string; value: string };
 
@@ -69,6 +70,7 @@ async function initializeCommitmentTree(tree: IncrementalMerkleTree) {
 }
 
 export function Application({ treeDepth }: { treeDepth: number }): JSX.Element {
+  const tokens = useContext(TokensContext);
   const { isConnected } = useAccount();
   const [poolAccounts, setPoolAccounts] = useState<zkAccount[]>([]);
   const [notifyQueue, setNotifyQueue] = useState<{ title: string; body: JSX.Element; serverity: AlertColor }[]>([]);
@@ -158,7 +160,7 @@ export function Application({ treeDepth }: { treeDepth: number }): JSX.Element {
             addToNotifyQueue(
               "Received Value",
               <>
-                {amount.amount} <strong>{amount.token}</strong>
+                {amount.amount} <strong>{tokens.get(amount.token as `0x${string}`)!.name}</strong>
               </>,
               "info"
             );
