@@ -43,6 +43,9 @@ export type DepositArgsStruct = Mutable<GetArgs<typeof zkErc20ABI, "deposit">["a
 export type DepositArgsStructEthers = forceString<bigintToBigNumber<DepositArgsStruct>>;
 export type AmountsArray = DepositArgsStruct["depositAmount"];
 
+export type TransactionArgsStruct = Mutable<GetArgs<typeof zkErc20ABI, "transact">["args"][0]>;
+export type TransactionArgsStructEthers = forceString<bigintToBigNumber<TransactionArgsStruct>>;
+
 // I hate this
 export function depositArgsToEthers(args: Mutable<DepositArgsStruct>): DepositArgsStructEthers {
   // I hate this even more
