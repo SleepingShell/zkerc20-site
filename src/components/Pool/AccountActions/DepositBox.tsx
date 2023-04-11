@@ -81,7 +81,7 @@ export function DepositBox(): JSX.Element {
 
     //TODO: Error handling
     const receiver = zkAccount.fromAddress(to.current!.value);
-    const value = BigInt(amount.current!.value) * 10n ** BigInt(tokens.get(token)!.decimals);
+    const value = BigInt(Number(amount.current!.value) * 10 ** tokens.get(token)!.decimals);
 
     checkApproval(value);
     const output1 = receiver.pay({ token: token, amount: value });

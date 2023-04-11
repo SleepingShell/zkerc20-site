@@ -157,10 +157,12 @@ export function Application({ treeDepth }: { treeDepth: number }): JSX.Element {
           // Add to notify
           const utxo = acc.getInput(acc.ownedUtxos.length - 1);
           for (const amount of utxo.getAmounts()) {
+            const tok = tokens.get(amount.token as `0x${string}`)!;
+            console.log("Received", amount.amount, tok.name);
             addToNotifyQueue(
               "Received Value",
               <>
-                {amount.amount} <strong>{tokens.get(amount.token as `0x${string}`)!.name}</strong>
+                {Number(amount.amount) / 10 ** tok.decimals} <strong>{tok.name}</strong>
               </>,
               "info"
             );
